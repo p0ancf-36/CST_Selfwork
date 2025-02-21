@@ -2,14 +2,14 @@
 
 #include <string.h>
 
-NameIndex create_name_index(size_t index, const Item *item) {
+NameIndex create_name_index(const size_t index, const Item *item) {
     NameIndex result;
     result.index = index;
     strcpy(result.name, item->name);
     return result;
 }
 
-NameIndex create_search_id_index(char *name) {
+NameIndex create_search_name_index(const char *name) {
     NameIndex result;
     result.index = SIZE_MAX;
     strcpy(result.name, name);
