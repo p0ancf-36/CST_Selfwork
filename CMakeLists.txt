@@ -15,4 +15,6 @@ add_executable(selfwork main.c
         Array.c
         IdIndex.c
         NameIndex.c
-        IndexArray.c)
+        IndexArray.c
+        Tree.c
+        Tree.h)
