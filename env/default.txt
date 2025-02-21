@@ -1,0 +1,13 @@
+12
+3 5 5 1 15 Diffuser 30cm
+1 24 15 2 121 Lamp 20x40
+2 5 2 2 23 Lamp 50x50
+4 7 1 2 84 Diffuser 50cm
+11 8 4 4 62 Kit lens
+5 3 3 3 8 Diffuser 80cm
+6 10 4 2 89 Type A loop microphone
+7 4 4 2 43 Type B loop microphone
+8 3 3 1 15 Type C loop microphone
+9 15 0 1 134 Microphone type A
+10 3 2 4 6 Microphone type B
+12 2 1 1 5 Wide lens
