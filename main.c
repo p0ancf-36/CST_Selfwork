@@ -273,6 +273,8 @@ int main(void) {
     printf("\n");
     print(&array, &name_tree->node);
 
+    printf("%d\n", height((TreeNode *)id_tree));
+    
     IdIndex mock_id_index = { 0, 11 };
     TreeNode *search_result = find_tree(&id_tree->node, &mock_id_index, id_index_comparator);
 

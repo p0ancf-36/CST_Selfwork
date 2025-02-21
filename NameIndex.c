@@ -9,6 +9,14 @@ NameIndex create_name_index(size_t index, const Item *item) {
     return result;
 }
 
+NameIndex create_search_id_index(char *name) {
+    NameIndex result;
+    result.index = SIZE_MAX;
+    strcpy(result.name, name);
+
+    return result;
+}
+
 CmpRes compare_name_indexes(const NameIndex *a, const NameIndex *b) {
     int cmpres = strcmp(a->name, b->name);
 

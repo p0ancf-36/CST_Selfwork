@@ -81,36 +81,35 @@ typedef struct {
 } tri_index;
 
 tri_index find_indexes_by_id(Array *source, Array *id_index, Array *name_index, uint64_t id) {
-    IdIndex mock_id_index = { 0, id };
-    IdIndex *id_i = find_i(id_index, &mock_id_index, id_index_comparator);
+    IdIndex search_id_index = create_search_id_index(id);
+    IdIndex *id_i = find_i(id_index, &search_id_index, id_index_comparator);
 
-    if (id_index_comparator(id_i, &mock_id_index) != Equals) {
+    if (id_index_comparator(id_i, &search_id_index) != Equals) {
         return (tri_index)  {SIZE_MAX, 0, 0};
     }
 
     size_t source_index = id_i->index;
     Item *item = get(source, source_index);
 
-    NameIndex mock_name_index = create_name_index(0, item);
-    NameIndex *name_i = find_i(name_index, &mock_name_index, name_index_comparator);
+    NameIndex search_name_index = create_search_name_index(item->name);
+    NameIndex *name_i = find_i(name_index, &search_name_index, name_index_comparator);
 
     return (tri_index) {source_index, index_of(id_index, id_i), index_of(name_index, name_i)};
 }
 
 tri_index find_indexes_by_name(Array *source, Array *id_index, Array *name_index, char *name) {
-    NameIndex mock_name_index = { 0 };
-    strcpy(mock_name_index.name, name);
-    NameIndex *name_i = find_i(name_index, &mock_name_index, name_index_comparator);
+    NameIndex search_name_index = create_search_name_index(name);
+    NameIndex *name_i = find_i(name_index, &search_name_index, name_index_comparator);
 
-    if (name_index_comparator(name_i, &mock_name_index) != Equals) {
+    if (name_index_comparator(name_i, &search_name_index) != Equals) {
         return (tri_index) {SIZE_MAX, 0, 0};
     }
 
     size_t source_index = name_i->index;
     Item *item = get(source, source_index);
 
-    IdIndex mock_id_index = create_id_index(0, item);
-    IdIndex *id_i = find_i(id_index, &mock_id_index, id_index_comparator);
+    IdIndex search_id_index = create_search_id_index(item->id);
+    IdIndex *id_i = find_i(id_index, &search_id_index, id_index_comparator);
 
     return (tri_index) {source_index, index_of(id_index, id_i), index_of(name_index, name_i)};
 }

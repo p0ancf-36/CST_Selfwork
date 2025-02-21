@@ -15,6 +15,7 @@ typedef struct {
 } NameIndex; // Индекс по названию
 
 NameIndex create_name_index(size_t, const Item *);
+NameIndex create_search_name_index(char *);
 CmpRes compare_name_indexes(const NameIndex *, const NameIndex *);
 CmpRes name_index_comparator(const void *, const void *);
 

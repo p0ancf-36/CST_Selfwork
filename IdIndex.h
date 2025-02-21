@@ -15,6 +15,7 @@ typedef struct {
 } IdIndex; // Индекс по идентификатору
 
 IdIndex create_id_index(size_t, const Item *);
+IdIndex create_search_id_index(uint64_t);
 CmpRes compare_id_indexes(const IdIndex *, const IdIndex *);
 CmpRes id_index_comparator(const void *, const void *);
 
