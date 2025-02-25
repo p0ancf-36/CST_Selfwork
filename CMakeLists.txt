@@ -17,4 +17,6 @@ add_executable(selfwork main.c
         NameIndex.c
         IndexArray.c
         Tree.c
-        Tree.h)
+        Tree.h
+        List.h
+        List.c)

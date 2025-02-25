@@ -17,13 +17,15 @@ typedef struct {
 Array create_array(size_t, size_t);
 void destroy_array(Array *);
 
-void append(Array *, void *);
+void append(Array *, const void *);
 void expand(Array *);
 
-void set(Array *, size_t, void *);
-void *get(Array *, size_t);
+void set(const Array *, size_t, const void *);
 
-size_t index_of(Array *array, void *object);
+#define GET(array, index) ((array)->data + (index) * (array)->struct_size)
+#define GET_T(array, index, type) ((type *)((array)->data + (index) * (array)->struct_size))
+
+size_t index_of(const Array *array, const void *object);
 void remove_on(Array *, size_t);
 
 #endif //ARRAY_H

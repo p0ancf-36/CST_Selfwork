@@ -36,6 +36,6 @@ TreeNode *find_in_tree(TreeNode *node, void *object, Comparator comparator);
 TreeNode *remove_in_tree(TreeNode* node, void *object, Comparator comparator);
 void rebase_tree_indexes(TreeNode *node, size_t index);
 
-void print(Array *source, TreeNode *tree);
+void tree_print_items(Array *source, TreeNode *tree);
 
 #endif //TREE_H

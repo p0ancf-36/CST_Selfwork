@@ -172,13 +172,13 @@ void rebase_tree_indexes(TreeNode *node, const size_t index) {
     rebase_tree_indexes(node->right, index);
 }
 
-void print(Array *source, TreeNode *tree) {
+void tree_print_items(Array *source, TreeNode *tree) {
     if (tree == nullptr)
         return;
 
-    print(source, tree->left);
-    print_item(get(source, *(size_t *)get_data(tree)));
-    print(source, tree->right);
+    tree_print_items(source, tree->left);
+    print_item(GET(source, *(size_t *)get_data(tree)));
+    tree_print_items(source, tree->right);
 }
 
 #undef GETI

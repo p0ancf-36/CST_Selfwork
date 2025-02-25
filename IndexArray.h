@@ -12,17 +12,17 @@
 void* find(Array *, void *, Comparator);
 
 void* find_r(Array *, void *, Comparator, size_t l, size_t r);
-void* find_i(Array *, void *, Comparator);
+void* find_i(const Array *, const void *, Comparator);
 
 void swap_sorted(Array *, size_t, Comparator);
 
 void remove_by_id(Array *, Array *, Array *, uint64_t);
-void remove_by_name(Array *, Array *, Array *, char *);
+void remove_by_name(Array *, Array *, Array *, const char *);
 
-void edit_by_id(Array *, Array *, Array *, uint64_t);
-void edit_by_name(Array *, Array *, Array *, char *);
+void edit_by_id(const Array *, Array *, Array *, uint64_t);
+void edit_by_name(const Array *, Array *, Array *, const char *);
 
-void print_by_id(Array *, Array *);
-void print_by_name(Array *, Array *);
+void print_by_id(const Array *, const Array *);
+void print_by_name(const Array *, const Array *);
 
 #endif //INDEXARRAY_H

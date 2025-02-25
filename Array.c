@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-Array create_array(size_t alignment, size_t struct_size) {
+Array create_array(const size_t alignment, const size_t struct_size) {
     Array result;
     result.capacity = 1;
     result.size = 0;
@@ -19,7 +19,7 @@ void destroy_array(Array *array) {
     array->data = NULL;
 }
 
-void append(Array *dest, void *object) {
+void append(Array *dest, const void *object) {
     if (dest->size == dest->capacity)
         expand(dest);
 
@@ -35,22 +35,18 @@ void expand(Array *array) {
     array->data = ndata;
 }
 
-void set(Array *array, size_t index, void *object) {
-    memcpy(get(array, index), object, array->struct_size);
+void set(const Array *array, const size_t index, const void *object) {
+    memcpy(GET(array, index), object, array->struct_size);
 }
 
-inline void *get(Array *array, size_t index) {
-    return array->data + index * array->struct_size;
-}
-
-inline size_t index_of(Array *array, void *object) {
+inline size_t index_of(const Array *array, const void *object) {
     return (object - array->data) / array->struct_size;
 }
 
-void remove_on(Array *array, size_t index) {
+void remove_on(Array *array, const size_t index) {
     array->size -= 1;
     if (index == array->size) {
         return;
     }
-    memcpy(get(array, index), get(array, index + 1), (array->size - index) * array->struct_size);
+    memcpy(GET(array, index), GET(array, index + 1), (array->size - index) * array->struct_size);
 }
