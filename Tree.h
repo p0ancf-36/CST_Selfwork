@@ -20,21 +20,18 @@ TreeNode *create_id_index_tree_node(size_t i, const Item *item);
 TreeNode *create_name_index_tree_node(size_t i, const Item *item);
 void destroy_tree(TreeNode *tree);
 
-void *get_data(TreeNode *node);
+#define TREE_GET(node) ((void *)(((TreeNode *) node) + 1))
+#define TREE_GET_T(node, T) ((T *)(((TreeNode *) node) + 1))
 
-uint8_t height(const TreeNode *);
-uint8_t bfactor(const TreeNode *);
-void fix_height(TreeNode *);
+TreeNode *tree_insert(TreeNode* p, TreeNode *k, Comparator comparator);
 
-TreeNode *rotate_right(TreeNode *);
-TreeNode *rotate_left(TreeNode *);
-TreeNode* balance(TreeNode* p);
-
-TreeNode *insert(TreeNode* p, TreeNode *k, Comparator comparator);
-TreeNode *find_in_tree(TreeNode *node, void *object, Comparator comparator);
+TreeNode *find_in_tree(const TreeNode *node, const void *object, Comparator comparator);
+TreeNode *find_i_in_tree(const TreeNode *node, const void *object, Comparator comparator);
 
 TreeNode *remove_in_tree(TreeNode* node, void *object, Comparator comparator);
-void rebase_tree_indexes(TreeNode *node, size_t index);
+
+void remove_in_tree_by_id(Array *source, TreeNode **id_tree, TreeNode **name_tree, const uint64_t id);
+void remove_in_tree_by_name(Array *source, TreeNode **id_tree, TreeNode **name_tree, const char *name);
 
 void tree_print_items(Array *source, TreeNode *tree);
 

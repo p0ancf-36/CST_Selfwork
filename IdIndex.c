@@ -27,7 +27,3 @@ CmpRes compare_id_indexes(const IdIndex *a, const IdIndex *b) {
 CmpRes id_index_comparator(const void *a, const void *b) {
     return compare_id_indexes(a, b);
 }
-
-void print_id_index(const IdIndex * index) {
-    printf("%d\tat %d\n", index->id, index->index);
-}

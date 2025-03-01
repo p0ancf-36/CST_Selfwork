@@ -38,14 +38,34 @@ void index_array() {
         swap_sorted(&name_index, i, name_index_comparator);
     }
 
-    print_by_name(&array, &name_index);
-    edit_by_id(&array, &id_index, &name_index, 3);
-    printf("\n");
-    print_by_name(&array, &name_index);
+    for (int i = 0; i < array.size; i++) {
+        print_item(GET_T(&array, GET_T(&name_index, i, NameIndex)->index, Item));
+    }
 
-    destroy_array(&id_index);
-    destroy_array(&name_index);
-    destroy_array(&array);
+    while (true) {
+        printf("Enter name to delete: ");
+        char name[STRING_LENGTH];
+        scanf("\n%[^\n]", &name);
+
+        NameIndex id_i = create_search_name_index(name);
+        remove_by_name(&array, &id_index, &name_index, name);
+
+        // if (name_index_comparator(search_result, &name_i) == Equals) {
+        //     print_item(GET(&array, search_result->index));
+        // } else {
+        //     printf("Item does not exists\n");
+        // }
+        // printf("\n");
+
+        for (int i = 0; i < array.size; i++) {
+            size_t j = GET_T(&name_index, i, IdIndex)->index;
+            Item *item = GET_T(&array, j, Item);
+            print_item(item);
+        }
+
+        fflush(stdin);
+        fflush(stdout);
+    }
 }
 
 void index_tree() {
@@ -68,43 +88,38 @@ void index_tree() {
         append(&array, &item);
 
         TreeNode *id_node = create_id_index_tree_node(i, &item);
-        id_tree = insert(id_tree, id_node, id_index_comparator);
+        id_tree = tree_insert(id_tree, id_node, id_index_comparator);
 
         TreeNode *name_node = create_name_index_tree_node(i, &item);
-        name_tree = insert(name_tree, name_node, name_index_comparator);
+        name_tree = tree_insert(name_tree, name_node, name_index_comparator);
     }
 
-    tree_print_items(&array, id_tree);
-    printf("\n");
     tree_print_items(&array, name_tree);
+    // while (true) {
+    //     printf("Enter name to remove: ");
+    //     char name[STRING_LENGTH];
+    //     scanf("\n%[^\n]", &name);
+    //
+    //     remove_in_tree_by_name(&array, &id_tree, &name_tree, name);
+    //
+    //     tree_print_items(&array, name_tree);
+    //
+    //     fflush(stdin);
+    //     fflush(stdout);
+    // }
 
-    IdIndex search_id_index = create_search_id_index(11);
-    TreeNode *search_result = find_in_tree(id_tree, &search_id_index, id_index_comparator);
+    while (true) {
+        printf("Enter id to remove: ");
+        size_t id;
+        scanf("%lu", &id);
 
-    if (search_result == nullptr) {
-        printf("Not found\n");
-    } else {
-        size_t remove_index = ((IdIndex *)get_data(search_result))->index;
-        Item *item = GET(&array, remove_index);
-        NameIndex search_name_index = create_search_name_index(item->name);
+        remove_in_tree_by_id(&array, &id_tree, &name_tree, id);
 
-        id_tree = remove_in_tree(id_tree, &search_id_index, id_index_comparator);
-        rebase_tree_indexes(id_tree, remove_index);
+        tree_print_items(&array, id_tree);
 
-        name_tree = remove_in_tree(name_tree, &search_name_index, name_index_comparator);
-        rebase_tree_indexes(name_tree, remove_index);
-
-        remove_on(&array, remove_index);
+        fflush(stdin);
+        fflush(stdout);
     }
-
-    printf("\n");
-    tree_print_items(&array, name_tree);
-
-    destroy_tree(id_tree);
-    destroy_tree(name_tree);
-    destroy_array(&array);
-
-    return;
 }
 
 typedef enum { NewItem = 1, PrintAsAdded, PrintByIndex, Search, Remove } ListChoice;
@@ -175,16 +190,6 @@ void list_task_new_item(ListTaskData *data) {
     }
 }
 
-void print_by_list(Array array, List *list) {
-    List *curr = list;
-
-    while (curr) {
-        size_t index = *LIST_GET_T(curr, size_t);
-        print_item(GET(&array, index));
-        curr = curr->next;
-    }
-}
-
 void list_task_remove(ListTaskData *data) {
     Attribute attribute = scan_attribute();
     List *list;
@@ -195,112 +200,86 @@ void list_task_remove(ListTaskData *data) {
         case Id:
             uint64_t id = SIZE_MAX;
             scanf("%lu", &id);
-            list = list_cut_by_id(&data->id_list, id);
-            remove_index = *LIST_GET_T(list, size_t);
-            if (list == nullptr || remove_index == SIZE_MAX) {
-                printf("Item not found\n");
-                break;
-            }
-            decrease_indexes(data->id_list, remove_index);
-            free(list);
-
-            item = GET_T(&data->array, remove_index, Item);
-            list = list_cut_by_name(&data->name_list, item->name);
-            free(list);
-            decrease_indexes(data->name_list, remove_index);
-
-            remove_on(&data->array, remove_index);
+            list_delete_by_id(&data->array, &data->id_list, &data->name_list, id);
             break;
         case Name:
             char name[STRING_LENGTH];
             scanf("\n%[^\n]", &name);
-            list = list_cut_by_name(&data->name_list, name);
-            remove_index = *LIST_GET_T(list, size_t);
-            if (list == nullptr || remove_index == SIZE_MAX) {
-                printf("Item not found\n");
-                break;
-            }
-            decrease_indexes(data->name_list, remove_index);
-            free(list);
-
-            item = GET_T(&data->array, remove_index, Item);
-            list = list_cut_by_name(&data->name_list, item->name);
-            free(list);
-            decrease_indexes(data->name_list, remove_index);
-
-            remove_on(&data->array, index_of(&data->array, item));
+            list_delete_by_name(&data->array, &data->id_list, &data->name_list, name);
             break;
     }
 }
 
 int main(void) {
-    ListTaskData data;
-    data.is_running = true;
-    data.array = create_array(__alignof(Item), sizeof(Item));
-    data.id_list = nullptr;
-    data.name_list = nullptr;
-
-    Attribute attribute;
-    List *list;
-    Item *item;
-
-    while (data.is_running) {
-        print_list_menu();
-
-        int choice = 0;
-        scanf("%d", &choice);
-
-        switch (choice) {
-            case NewItem: // ввод новых записей
-                list_task_new_item(&data);
-                break;
-            case PrintAsAdded: // просмотр элементов в порядке ввода
-                print_item_array(data.array);
-                break;
-            case PrintByIndex: // просмотр в порядке возрастания атрибута
-                attribute = scan_attribute();
-
-                switch (attribute) {
-                    case Id:
-                        print_by_list(data.array, data.id_list);
-                        break;
-                    case Name:
-                        print_by_list(data.array, data.name_list);
-                        break;
-                }
-                break;
-            case Search: // поиск
-                attribute = scan_attribute();
-
-                switch (attribute) {
-                    case Id:
-                        uint64_t id = SIZE_MAX;
-                        scanf("%lu", &id);
-                        list = list_find_by_id(data.id_list, id);
-                    break;
-                    case Name:
-                        char name[STRING_LENGTH];
-                        scanf("\n%[^\n]", &name);
-                        list = list_find_by_name(data.name_list, name);
-                    break;
-                }
-
-                if (list == nullptr || *LIST_GET_T(list, size_t) == SIZE_MAX)
-                    printf("Item not found\n");
-                else
-                    print_item(GET(&data.array, *LIST_GET_T(list, size_t)));
-
-                break;
-            case Remove: // удаление
-                list_task_remove(&data);
-                break;
-            case 6:
-                data.is_running = false;
-                break;
-            default:
-                printf("There is not option with number `%d`\n", choice);
-        }
-    }
-
-    return 0;
+    // index_array();
+    index_tree();
+    // ListTaskData data;
+    // data.is_running = true;
+    // data.array = create_array(__alignof(Item), sizeof(Item));
+    // data.id_list = nullptr;
+    // data.name_list = nullptr;
+    //
+    // Attribute attribute;
+    // List *list;
+    // Item *item;
+    //
+    // while (data.is_running) {
+    //     print_list_menu();
+    //
+    //     int choice = 0;
+    //     scanf("%d", &choice);
+    //
+    //     switch (choice) {
+    //         case NewItem: // ввод новых записей
+    //             list_task_new_item(&data);
+    //             break;
+    //         case PrintAsAdded: // просмотр элементов в порядке ввода
+    //             print_item_array(data.array);
+    //             break;
+    //         case PrintByIndex: // просмотр в порядке возрастания атрибута
+    //             attribute = scan_attribute();
+    //
+    //             switch (attribute) {
+    //                 case Id:
+    //                     print_by_list(&data.array, data.id_list);
+    //                     break;
+    //                 case Name:
+    //                     print_by_list(&data.array, data.name_list);
+    //                     break;
+    //             }
+    //             break;
+    //         case Search: // поиск
+    //             attribute = scan_attribute();
+    //
+    //             switch (attribute) {
+    //                 case Id:
+    //                     uint64_t id = SIZE_MAX;
+    //                     scanf("%lu", &id);
+    //                     list = list_find_by_id(data.id_list, id);
+    //                 break;
+    //                 case Name:
+    //                     char name[STRING_LENGTH];
+    //                     scanf("\n%[^\n]", &name);
+    //                     list = list_find_by_name(data.name_list, name);
+    //                 break;
+    //             }
+    //
+    //             if (list == nullptr || *LIST_GET_T(list, size_t) == SIZE_MAX)
+    //                 printf("Item not found\n");
+    //             else
+    //                 print_item(GET(&data.array, *LIST_GET_T(list, size_t)));
+    //
+    //             break;
+    //         case Remove: // удаление
+    //             list_task_remove(&data);
+    //             break;
+    //         case 6:
+    //             data.is_running = false;
+    //             break;
+    //         default:
+    //             printf("There is not option with number `%d`\n", choice);
+    //     }
+    // }
+    //
+    // return 0;
 }

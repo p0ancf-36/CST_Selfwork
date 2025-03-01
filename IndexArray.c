@@ -7,11 +7,11 @@
 #include "Item.h"
 #include "NameIndex.h"
 
-void* find(Array *source, void *object, const Comparator comparator) {
+void* find(const Array *source, const void *object, const Comparator comparator) {
     return find_r(source, object, comparator, 0, source->size-1);
 }
 
-void* find_r(Array *source, void *object, const Comparator comparator, const size_t l, const size_t r) {
+void* find_r(const Array *source, const void *object, const Comparator comparator, const size_t l, const size_t r) {
     if (l >= r)
         return GET(source, l);
 
@@ -22,7 +22,6 @@ void* find_r(Array *source, void *object, const Comparator comparator, const siz
 
     return find_r(source, object, comparator, l, m - 1);
 }
-
 void* find_i(const Array *source, const void *object, const Comparator comparator) {
     size_t l = 0, r = source->size - 1;
 
@@ -38,7 +37,7 @@ void* find_i(const Array *source, const void *object, const Comparator comparato
     return GET(source, l);
 }
 
-void swap_sorted(Array *source, const size_t index, const Comparator comparator) {
+void swap_sorted(const Array *source, const size_t index, const Comparator comparator) {
     if (source->size < 2)
         return;
 
@@ -52,12 +51,12 @@ void swap_sorted(Array *source, const size_t index, const Comparator comparator)
     } else if (index == r || comparator(object, GET(source, index - 1)) == Less) {
         r = index - 1;
     } else {
-        l = index + 1;
+        l = index;
     }
 
     void *place = find_r(source, object, comparator, l, r);
 
-    if (comparator(tmp, place) == Greater) {
+    if (index_of(source, place) < source->size - 1 && comparator(tmp, place) == Greater) {
         place += source->struct_size;
     }
 
@@ -65,11 +64,10 @@ void swap_sorted(Array *source, const size_t index, const Comparator comparator)
 
     } else if (place < object) {
         memcpy(place + source->struct_size, place, object - place);
-        memcpy(place, tmp, source->struct_size);
     } else {
         memcpy(object, object + source->struct_size, place - object);
-        memcpy(place, tmp, source->struct_size);
     }
+    memcpy(place, tmp, source->struct_size);
 
     free(tmp);
 }
@@ -94,7 +92,6 @@ tri_index find_indexes_by_id(const Array *source, const Array *id_index, const A
 
     return (tri_index) {source_index, index_of(id_index, id_i), index_of(name_index, name_i)};
 }
-
 tri_index find_indexes_by_name(const Array *source, const Array *id_index, const Array *name_index, const char *name) {
     const NameIndex search_name_index = create_search_name_index(name);
     const NameIndex *name_i = find_i(name_index, &search_name_index, name_index_comparator);
@@ -129,7 +126,6 @@ void remove_by_tri_indexes(Array *source, Array *id_index, Array *name_index, co
         }
     }
 }
-
 void remove_by_id(Array *source, Array *id_index, Array *name_index, const uint64_t id) {
     const tri_index indexes = find_indexes_by_id(source, id_index, name_index, id);
 
@@ -138,7 +134,6 @@ void remove_by_id(Array *source, Array *id_index, Array *name_index, const uint6
 
     remove_by_tri_indexes(source, id_index, name_index, indexes);
 }
-
 void remove_by_name(Array *source, Array *id_index, Array *name_index, const char *name) {
     const tri_index indexes = find_indexes_by_name(source, id_index, name_index, name);
 
@@ -160,7 +155,6 @@ void edit_by_tri_indexes(const Array *source, Array *id_index, Array *name_index
     swap_sorted(id_index, indexes.id, id_index_comparator);
     swap_sorted(name_index, indexes.name, name_index_comparator);
 }
-
 void edit_by_id(const Array *source, Array *id_index, Array *name_index, const uint64_t id) {
     const tri_index indexes = find_indexes_by_id(source, id_index, name_index, id);
 
@@ -169,7 +163,6 @@ void edit_by_id(const Array *source, Array *id_index, Array *name_index, const u
 
     edit_by_tri_indexes(source, id_index, name_index, indexes);
 }
-
 void edit_by_name(const Array *source, Array *id_index, Array *name_index, const char *name) {
     const tri_index indexes = find_indexes_by_name(source, id_index, name_index, name);
 

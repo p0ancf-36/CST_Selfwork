@@ -6,11 +6,9 @@
 #include "IdIndex.h"
 #include "Item.h"
 
-void *get_data(TreeNode *node) { return 1 + node; }
-
 TreeNode *create_id_index_tree_node(const size_t i, const Item *item) {
     TreeNode *result = aligned_alloc(__alignof(TreeNode), sizeof(TreeNode) + sizeof(IdIndex));
-    *(IdIndex *) get_data(result) = create_id_index(i, item);
+    *(IdIndex *) TREE_GET(result) = create_id_index(i, item);
 
     result->height = 1;
     result->left = result->right = nullptr;
@@ -20,7 +18,7 @@ TreeNode *create_id_index_tree_node(const size_t i, const Item *item) {
 
 TreeNode *create_name_index_tree_node(const size_t i, const Item *item) {
     TreeNode *result = aligned_alloc(__alignof(TreeNode), sizeof(TreeNode) + sizeof(NameIndex));
-    *(NameIndex *) get_data(result) = create_name_index(i, item);
+    *(NameIndex *) TREE_GET(result) = create_name_index(i, item);
 
     result->height = 1;
     result->left = result->right = nullptr;
@@ -42,7 +40,7 @@ uint8_t height(const TreeNode *node) {
     return node != nullptr ? node->height : 0;
 }
 
-uint8_t bfactor(const TreeNode *node) {
+int16_t bfactor(const TreeNode *node) {
     return height(node->right) - height(node->left);
 }
 
@@ -51,7 +49,6 @@ void fix_height(TreeNode *node) {
     const uint8_t right_height = height(node->right);
     node->height = (left_height > right_height ? left_height : right_height) + 1;
 }
-
 
 TreeNode * rotate_right(TreeNode *p) {
     TreeNode* q = p->left;
@@ -91,23 +88,23 @@ TreeNode* balance(TreeNode* p)
     return p;
 }
 
-TreeNode* insert(TreeNode* p, TreeNode *k, const Comparator comparator)
+TreeNode* tree_insert(TreeNode* p, TreeNode *k, const Comparator comparator)
 {
     if(p == nullptr) return k;
 
-    if(comparator(get_data(k), get_data(p)) == Less)
-        p->left = insert(p->left, k, comparator);
+    if(comparator(TREE_GET(k), TREE_GET(p)) == Less)
+        p->left = tree_insert(p->left, k, comparator);
     else
-        p->right = insert(p->right, k, comparator);
+        p->right = tree_insert(p->right, k, comparator);
 
     return balance(p);
 }
 
-TreeNode *find_in_tree(TreeNode *node, void *object, const Comparator comparator) {
+TreeNode *find_in_tree(const TreeNode *node, const void *object, const Comparator comparator) {
     if (node == nullptr)
         return nullptr;
 
-    const CmpRes cmp_res = comparator(get_data(node), object);
+    const CmpRes cmp_res = comparator(TREE_GET(node), object);
 
     if (cmp_res == Equals)
         return node;
@@ -116,6 +113,24 @@ TreeNode *find_in_tree(TreeNode *node, void *object, const Comparator comparator
         return find_in_tree(node->right, object, comparator);
 
     return find_in_tree(node->left, object, comparator);
+}
+
+TreeNode * find_i_in_tree(const TreeNode *node, const void *object, const Comparator comparator) {
+    TreeNode *n = node;
+
+    while (n != nullptr) {
+        const CmpRes cmp_res = comparator(TREE_GET(n), object);
+
+        if (cmp_res == Equals)
+            break;
+
+        if (cmp_res == Less)
+            n = n->right;
+        else
+            n = n->left;
+    }
+
+    return n;
 }
 
 TreeNode* find_min(TreeNode* p)
@@ -136,11 +151,11 @@ TreeNode* remove_in_tree(TreeNode* node, void *object, const Comparator comparat
 {
     if(node == nullptr) return nullptr;
 
-    const CmpRes cmp_res = comparator(get_data(node), object);
+    const CmpRes cmp_res = comparator(TREE_GET(node), object);
 
-    if (cmp_res == Less)
+    if (cmp_res == Greater)
         node->left = remove_in_tree(node->left, object, comparator);
-    else if (cmp_res == Greater)
+    else if (cmp_res == Less)
         node->right = remove_in_tree(node->right, object, comparator);
     else if (cmp_res == Equals) {
         TreeNode* q = node->left;
@@ -159,17 +174,53 @@ TreeNode* remove_in_tree(TreeNode* node, void *object, const Comparator comparat
     return balance(node);
 }
 
-#define GETI (*(size_t *)get_data(node))
-
 void rebase_tree_indexes(TreeNode *node, const size_t index) {
     if (node == nullptr)
         return;
 
-    if (GETI >= index)
-        GETI -= 1;
+    if (*TREE_GET_T(node, size_t) >= index)
+        *TREE_GET_T(node, size_t) -= 1;
 
     rebase_tree_indexes(node->left, index);
     rebase_tree_indexes(node->right, index);
+}
+
+void remove_in_tree_by_id(Array *source, TreeNode **id_tree, TreeNode **name_tree, const uint64_t id) {
+    IdIndex index = create_search_id_index(id);
+
+    TreeNode *to_remove = find_in_tree(*id_tree, &index, id_index_comparator);
+    size_t remove_index = *TREE_GET_T(to_remove, size_t);
+
+    if (to_remove == nullptr)
+        return;
+
+    *id_tree = remove_in_tree(*id_tree, &index, id_index_comparator);
+    rebase_tree_indexes(*id_tree, remove_index);
+
+    Item *item = GET_T(source, remove_index, Item);
+
+    NameIndex sindex = create_search_name_index(item->name);
+    *name_tree = remove_in_tree(*id_tree, &sindex, name_index_comparator);
+    remove_on(source, remove_index);
+}
+
+void remove_in_tree_by_name(Array *source, TreeNode **id_tree, TreeNode **name_tree, const char *name) {
+    NameIndex index = create_search_name_index(name);
+
+    TreeNode *to_remove = find_in_tree(*name_tree, &index, name_index_comparator);
+    size_t remove_index = *TREE_GET_T(to_remove, size_t);
+
+    if (to_remove == nullptr)
+        return;
+
+    *name_tree = remove_in_tree(*name_tree, &index, name_index_comparator);
+    rebase_tree_indexes(*name_tree, remove_index);
+
+    Item *item = GET_T(source, remove_index, Item);
+
+    IdIndex sindex = create_search_id_index(item->id);
+    *id_tree = remove_in_tree(*id_tree, &sindex, id_index_comparator);
+    remove_on(source, remove_index);
 }
 
 void tree_print_items(Array *source, TreeNode *tree) {
@@ -177,8 +228,6 @@ void tree_print_items(Array *source, TreeNode *tree) {
         return;
 
     tree_print_items(source, tree->left);
-    print_item(GET(source, *(size_t *)get_data(tree)));
+    print_item(GET(source, *(size_t *)TREE_GET(tree)));
     tree_print_items(source, tree->right);
 }
-
-#undef GETI

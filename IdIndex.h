@@ -19,6 +19,4 @@ IdIndex create_search_id_index(uint64_t);
 CmpRes compare_id_indexes(const IdIndex *, const IdIndex *);
 CmpRes id_index_comparator(const void *, const void *);
 
-void print_id_index(const IdIndex *);
-
 #endif //IDINDEX_H

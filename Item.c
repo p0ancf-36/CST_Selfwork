@@ -31,7 +31,7 @@ Item fscan_item(FILE *file) {
 }
 
 void print_item(const Item *item) {
-    printf("%4d\t%-32s\t%4d/%-4d\t%4d\t%4d\n", item->id, item->name, item->in_stock, item->count, item->av_rent_count, item->av_rent_time);
+    printf("%4lu\t%-32s\t%4d/%-4d\t%4d\t%4d\n", item->id, item->name, item->in_stock, item->count, item->av_rent_count, item->av_rent_time);
 }
 
 void edit_item(Item *item) {

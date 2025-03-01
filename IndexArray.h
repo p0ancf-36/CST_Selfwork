@@ -9,12 +9,12 @@
 #include "defines.h"
 #include "Array.h"
 
-void* find(Array *, void *, Comparator);
+void* find(const Array *, const void *, Comparator);
 
-void* find_r(Array *, void *, Comparator, size_t l, size_t r);
+void* find_r(const Array *, const void *, Comparator, size_t l, size_t r);
 void* find_i(const Array *, const void *, Comparator);
 
-void swap_sorted(Array *, size_t, Comparator);
+void swap_sorted(const Array *, size_t, Comparator);
 
 void remove_by_id(Array *, Array *, Array *, uint64_t);
 void remove_by_name(Array *, Array *, Array *, const char *);
